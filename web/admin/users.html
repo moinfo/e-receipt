@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - E-Receipt System</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">E-RECEIPT ADMIN</div>
+        <div class="navbar-menu">
+            <a href="dashboard.html" class="navbar-link">Dashboard</a>
+            <a href="pending-users.html" class="navbar-link">Pending Users</a>
+            <a href="all-receipts.html" class="navbar-link">All Receipts</a>
+            <a href="banks.html" class="navbar-link">Banks</a>
+            <a href="users.html" class="navbar-link active">Users</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">User Management</h1>
+            <p class="dashboard-subtitle">Manage system users</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Status Filter -->
+        <div style="margin-bottom: 2rem;">
+            <div class="form-group" style="max-width: 300px;">
+                <label class="form-label">Filter by Status</label>
+                <select id="statusFilter" class="form-control" onchange="filterUsers()">
+                    <option value="all">All Users</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-container">
+            <div id="loadingUsers" class="text-center" style="padding: 2rem;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+                <p style="margin-top: 1rem; color: #9CA3AF;">Loading users...</p>
+            </div>
+
+            <table id="usersTable" class="hidden">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Username</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersBody">
+                </tbody>
+            </table>
+
+            <div id="noUsers" class="hidden text-center" style="padding: 3rem; color: #9CA3AF;">
+                <h3>No Users Found</h3>
+                <p>No users match the selected filter</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer" style="margin-top: auto;">
+        <p>&copy; 2025 E-Receipt System. All rights reserved.</p>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Edit User</h3>
+                <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" id="fullName" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone *</label>
+                        <input type="tel" id="phone" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="username" class="form-control" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select id="isAdmin" class="form-control">
+                            <option value="0">User</option>
+                            <option value="1">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;" id="submitBtn">
+                            <span id="btnText">Update User</span>
+                            <div id="btnSpinner" class="spinner hidden"></div>
+                        </button>
+                        <button type="button" onclick="closeModal('userModal')" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        let currentUser = null;
+        let allUsers = [];
+        let filteredUsers = [];
+        let currentFilter = 'all';
+
+        // Initialize page
+        async function initUsers() {
+            currentUser = checkAdmin();
+            if (!currentUser) return;
+
+            updateNavbar(currentUser);
+            await loadUsers();
+        }
+
+        // Load all users
+        async function loadUsers() {
+            try {
+                const data = await apiRequest('/admin/users.php?status=' + currentFilter);
+
+                document.getElementById('loadingUsers').classList.add('hidden');
+
+                if (data.success && data.data.length > 0) {
+                    allUsers = data.data;
+                    filteredUsers = allUsers;
+                    displayUsers();
+                } else {
+                    document.getElementById('noUsers').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                document.getElementById('loadingUsers').classList.add('hidden');
+                showAlert('Failed to load users', 'error');
+            }
+        }
+
+        // Filter users by status
+        async function filterUsers() {
+            currentFilter = document.getElementById('statusFilter').value;
+            document.getElementById('loadingUsers').classList.remove('hidden');
+            document.getElementById('usersTable').classList.add('hidden');
+            document.getElementById('noUsers').classList.add('hidden');
+            await loadUsers();
+        }
+
+        // Display users
+        function displayUsers() {
+            const tbody = document.getElementById('usersBody');
+            const table = document.getElementById('usersTable');
+            const noUsers = document.getElementById('noUsers');
+
+            tbody.innerHTML = '';
+
+            if (filteredUsers.length === 0) {
+                table.classList.add('hidden');
+                noUsers.classList.remove('hidden');
+                return;
+            }
+
+            table.classList.remove('hidden');
+            noUsers.classList.add('hidden');
+
+            filteredUsers.forEach(user => {
+                const row = document.createElement('tr');
+
+                // Status badge
+                let statusBadge = '';
+                if (user.status === 'approved') {
+                    statusBadge = '<span class="badge badge-approved">Approved</span>';
+                } else if (user.status === 'pending') {
+                    statusBadge = '<span class="badge badge-pending">Pending</span>';
+                } else if (user.status === 'rejected') {
+                    statusBadge = '<span class="badge badge-rejected">Rejected</span>';
+                }
+
+                // Role badge
+                const roleBadge = user.is_admin == 1
+                    ? '<span class="badge badge-approved">Admin</span>'
+                    : '<span class="badge" style="background: #6B7280;">User</span>';
+
+                // Action buttons
+                let actionButtons = `
+                    <button onclick="editUser(${user.id})" class="btn btn-secondary btn-sm">Edit</button>
+                `;
+
+                // Don't allow deleting yourself or other admins
+                if (user.id != currentUser.id && user.is_admin != 1) {
+                    actionButtons += `
+                        <button onclick="deleteUser(${user.id}, '${user.username}')" class="btn btn-danger btn-sm">Delete</button>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <td><strong>${user.full_name}</strong></td>
+                    <td>${user.username}</td>
+                    <td>${user.phone}</td>
+                    <td>${roleBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td>${formatDate(user.created_at)}</td>
+                    <td style="white-space: nowrap;">
+                        ${actionButtons}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Edit user
+        function editUser(id) {
+            const user = allUsers.find(u => u.id === id);
+            if (!user) return;
+
+            document.getElementById('userId').value = user.id;
+            document.getElementById('fullName').value = user.full_name;
+            document.getElementById('phone').value = user.phone;
+            document.getElementById('username').value = user.username;
+            document.getElementById('isAdmin').value = user.is_admin;
+            openModal('userModal');
+        }
+
+        // Handle form submission
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const userId = document.getElementById('userId').value;
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const isAdmin = document.getElementById('isAdmin').value;
+
+            if (!fullName || !phone) {
+                showAlert('Full name and phone are required', 'error');
+                return;
+            }
+
+            showLoading('submitBtn', 'btnText', 'btnSpinner');
+
+            try {
+                const payload = {
+                    id: userId,
+                    full_name: fullName,
+                    phone: phone,
+                    is_admin: isAdmin
+                };
+
+                const data = await apiRequest('/admin/user-update.php', 'PUT', payload);
+
+                if (data.success) {
+                    showAlert('User updated successfully', 'success');
+                    closeModal('userModal');
+                    await loadUsers();
+                } else {
+                    showAlert(data.message || 'Failed to update user', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to update user:', error);
+                showAlert('An error occurred while updating user', 'error');
+            } finally {
+                hideLoading('submitBtn', 'btnText', 'btnSpinner');
+            }
+        });
+
+        // Delete user
+        async function deleteUser(id, username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone and will delete all their receipts.`)) {
+                return;
+            }
+
+            try {
+                const data = await apiRequest('/admin/user-delete.php', 'DELETE', { id: id });
+
+                if (data.success) {
+                    showAlert('User deleted successfully', 'success');
+                    await loadUsers();
+                } else {
+                    showAlert(data.message || 'Failed to delete user', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to delete user:', error);
+                showAlert('An error occurred while deleting user', 'error');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', initUsers);
+    </script>
+</body>
+</html>

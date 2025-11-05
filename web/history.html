@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt History - E-Receipt System</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">E-RECEIPT</div>
+        <div class="navbar-menu">
+            <a href="dashboard.html" class="navbar-link">Dashboard</a>
+            <a href="upload-receipt.html" class="navbar-link">Upload Receipt</a>
+            <a href="history.html" class="navbar-link active">History</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Receipt History</h1>
+            <p class="dashboard-subtitle">View and manage all your uploaded receipts</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Filters -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-body">
+                <h3 style="margin-bottom: 1rem;">Filters</h3>
+                <div class="d-flex gap-2" style="flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div style="display: flex; flex-direction: column; min-width: 150px;">
+                        <label style="font-size: 0.85rem; color: #9CA3AF; margin-bottom: 0.25rem;">From Date</label>
+                        <input type="date" id="dateFrom" class="form-control">
+                    </div>
+                    <div style="display: flex; flex-direction: column; min-width: 150px;">
+                        <label style="font-size: 0.85rem; color: #9CA3AF; margin-bottom: 0.25rem;">To Date</label>
+                        <input type="date" id="dateTo" class="form-control">
+                    </div>
+                    <div style="display: flex; flex-direction: column; min-width: 180px;">
+                        <label style="font-size: 0.85rem; color: #9CA3AF; margin-bottom: 0.25rem;">Bank</label>
+                        <select id="bankFilter" class="form-control" style="padding-left: 1rem;">
+                            <option value="">All Banks</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex gap-2" style="flex-wrap: wrap;">
+                    <input type="text" id="searchInput" class="form-control" style="flex: 1; min-width: 200px; padding-left: 1rem;" placeholder="Search by receipt #, description...">
+                    <button onclick="applyFilters()" class="btn btn-primary">Apply Filters</button>
+                    <button onclick="clearFilters()" class="btn btn-secondary">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receipts Table -->
+        <div class="table-container">
+            <div id="loadingReceipts" class="text-center" style="padding: 2rem;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+                <p style="margin-top: 1rem; color: #9CA3AF;">Loading receipts...</p>
+            </div>
+
+            <table id="receiptsTable" class="hidden">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Bank</th>
+                        <th>Receipt #</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="receiptsBody">
+                </tbody>
+            </table>
+
+            <div id="noReceipts" class="hidden text-center" style="padding: 3rem; color: #9CA3AF;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.3; margin-bottom: 1rem;">
+                    <path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v18.5c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5V2l-1.5 1.5z"/>
+                </svg>
+                <h3>No Receipts Found</h3>
+                <p>Try adjusting your filters or upload a new receipt</p>
+                <a href="upload-receipt.html" class="btn btn-primary mt-2">Upload Receipt</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer" style="margin-top: auto;">
+        <p>&copy; 2025 E-Receipt System. All rights reserved.</p>
+    </div>
+
+    <!-- Receipt View Modal -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Receipt Details</h3>
+                <button class="modal-close" onclick="closeModal('receiptModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="receiptDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        let currentUser = null;
+        let allReceipts = [];
+        let filteredReceipts = [];
+
+        // Initialize page
+        async function initHistory() {
+            currentUser = checkAuth();
+            if (!currentUser) return;
+
+            updateNavbar(currentUser);
+            setTodayDate();
+            await loadBanks();
+            await loadReceipts();
+        }
+
+        // Set today's date as default
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateFrom').value = today;
+            document.getElementById('dateTo').value = today;
+        }
+
+        // Load banks for filter
+        async function loadBanks() {
+            try {
+                const data = await apiRequest('/banks/list.php');
+
+                if (data.success && data.data.length > 0) {
+                    const bankFilter = document.getElementById('bankFilter');
+                    data.data.forEach(bank => {
+                        const option = document.createElement('option');
+                        option.value = bank.id;
+                        option.textContent = bank.bank_name;
+                        bankFilter.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load banks:', error);
+            }
+        }
+
+        // Load all receipts
+        async function loadReceipts() {
+            try {
+                const data = await apiRequest('/receipts/user-history.php');
+
+                document.getElementById('loadingReceipts').classList.add('hidden');
+
+                if (data.success && data.data.length > 0) {
+                    allReceipts = data.data;
+                    filteredReceipts = [...allReceipts];
+                    displayReceipts();
+                } else {
+                    document.getElementById('noReceipts').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load receipts:', error);
+                document.getElementById('loadingReceipts').classList.add('hidden');
+                showAlert('Failed to load receipts', 'error');
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const bankId = document.getElementById('bankFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            filteredReceipts = allReceipts.filter(receipt => {
+                // Search filter
+                const matchesSearch = !searchTerm ||
+                    (receipt.receipt_number && receipt.receipt_number.toLowerCase().includes(searchTerm)) ||
+                    (receipt.description && receipt.description.toLowerCase().includes(searchTerm)) ||
+                    (receipt.bank_name && receipt.bank_name.toLowerCase().includes(searchTerm));
+
+                // Bank filter
+                const matchesBank = !bankId || receipt.bank_id == bankId;
+
+                // Date range filter
+                const receiptDate = receipt.upload_date.split(' ')[0]; // Get date part only
+                const matchesDateFrom = !dateFrom || receiptDate >= dateFrom;
+                const matchesDateTo = !dateTo || receiptDate <= dateTo;
+
+                return matchesSearch && matchesBank && matchesDateFrom && matchesDateTo;
+            });
+
+            displayReceipts();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('bankFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            filteredReceipts = [...allReceipts];
+            displayReceipts();
+        }
+
+        // Display receipts
+        function displayReceipts() {
+            const tbody = document.getElementById('receiptsBody');
+            const table = document.getElementById('receiptsTable');
+            const noReceipts = document.getElementById('noReceipts');
+
+            tbody.innerHTML = '';
+
+            if (filteredReceipts.length === 0) {
+                table.classList.add('hidden');
+                noReceipts.classList.remove('hidden');
+                return;
+            }
+
+            table.classList.remove('hidden');
+            noReceipts.classList.add('hidden');
+
+            filteredReceipts.forEach(receipt => {
+                const row = document.createElement('tr');
+
+                // Status badge
+                let statusBadge = getStatusBadge(receipt.status);
+
+                row.innerHTML = `
+                    <td>${formatDate(receipt.upload_date)}</td>
+                    <td>${receipt.bank_name || '-'}</td>
+                    <td>${receipt.receipt_number || '-'}</td>
+                    <td>${formatCurrency(receipt.amount)}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button onclick="viewReceipt(${receipt.id}, '${receipt.receipt_image_path}', ${JSON.stringify(receipt).replace(/"/g, '&quot;')})" class="btn btn-secondary btn-sm">
+                                View
+                            </button>
+                            ${receipt.status === 'pending' ? `<button onclick="deleteReceipt(${receipt.id})" class="btn btn-danger btn-sm">Delete</button>` : ''}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // View receipt
+        function viewReceipt(id, imagePath, receiptData) {
+            const receipt = typeof receiptData === 'string' ? JSON.parse(receiptData) : receiptData;
+            const details = document.getElementById('receiptDetails');
+            const receiptUrl = BASE_PATH + '/api/' + imagePath;
+            const isPDF = imagePath.toLowerCase().endsWith('.pdf');
+
+            let mediaHTML = '';
+            if (isPDF) {
+                // For PDFs, show embedded viewer
+                mediaHTML = `<embed src="${receiptUrl}" type="application/pdf" style="width: 100%; height: 500px; border-radius: 8px; margin-bottom: 1rem;">`;
+            } else {
+                // For images, show image
+                mediaHTML = `<img src="${receiptUrl}" alt="Receipt" style="width: 100%; border-radius: 8px; margin-bottom: 1rem;">`;
+            }
+
+            details.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    ${mediaHTML}
+                </div>
+                <div style="background-color: var(--dark-bg); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Bank</label>
+                        <strong>${receipt.bank_name || '-'}</strong>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Receipt Number</label>
+                        <strong>${receipt.receipt_number || '-'}</strong>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Amount</label>
+                        <strong style="color: var(--primary-orange); font-size: 1.25rem;">${formatCurrency(receipt.amount)}</strong>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Description</label>
+                        <p style="margin: 0;">${receipt.description || '-'}</p>
+                    </div>
+                    <div>
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Upload Date</label>
+                        <strong>${formatDate(receipt.upload_date)}</strong>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="${receiptUrl}" target="_blank" class="btn btn-secondary" style="flex: 1;">
+                        Open in New Tab
+                    </a>
+                    <a href="${receiptUrl}" download class="btn btn-primary" style="flex: 1;">
+                        Download
+                    </a>
+                </div>
+            `;
+            openModal('receiptModal');
+        }
+
+        // Delete receipt
+        async function deleteReceipt(id) {
+            if (!confirm('Are you sure you want to delete this receipt? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const data = await apiRequest('/receipts/delete.php', 'DELETE', { receipt_id: id });
+
+                if (data.success) {
+                    showAlert('Receipt deleted successfully', 'success');
+
+                    // Remove from arrays
+                    allReceipts = allReceipts.filter(r => r.id !== id);
+                    filteredReceipts = filteredReceipts.filter(r => r.id !== id);
+
+                    // Refresh display
+                    displayReceipts();
+                } else {
+                    showAlert(data.message || 'Failed to delete receipt', 'error');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showAlert('An error occurred while deleting', 'error');
+            }
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('receiptModal');
+            if (event.target === modal) {
+                closeModal('receiptModal');
+            }
+        }
+
+        // Search on input
+        document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
+
+        // Initialize on page load
+        window.addEventListener('load', initHistory);
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# E-Receipt System Configuration
+
+# Allow access
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>
+
+# Redirect to web folder if no file specified
+DirectoryIndex web/index.html
+
+Options +FollowSymLinks
+
+# PHP Upload Settings - Allow up to 10MB files
+php_value upload_max_filesize 10M
+php_value post_max_size 12M
+php_value max_execution_time 300
+php_value max_input_time 300

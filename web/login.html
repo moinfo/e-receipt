@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - E-Receipt System</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .version-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="auth-wrapper">
+            <!-- Brand Section -->
+            <div class="auth-brand">
+                <span class="version-badge">v3.0</span>
+                <div class="brand-logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                        <path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v18.5c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5V2l-1.5 1.5zM19 19H5V6h14v13zM7 11h2v2H7v-2zm0-3h2v2H7V8zm0 6h5v2H7v-2zm3-3h2v2h-2v-2zm0-3h2v2h-2V8zm3 3h2v2h-2v-2zm0-3h2v2h-2V8z"/>
+                    </svg>
+                </div>
+                <h1 class="brand-title">E-RECEIPT</h1>
+                <p class="brand-subtitle">Next Generation Document<br>Management</p>
+            </div>
+
+            <!-- Login Form Section -->
+            <div class="auth-form">
+                <h2 class="welcome-title">Welcome Back</h2>
+                <p class="welcome-subtitle">Enter your credentials to access your account</p>
+
+                <div id="alertContainer"></div>
+
+                <form id="loginForm">
+                    <!-- Username -->
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </span>
+                            <input type="text"
+                                   id="username"
+                                   name="username"
+                                   class="form-control"
+                                   placeholder="Enter your username"
+                                   required>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                                </svg>
+                            </span>
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   class="form-control"
+                                   placeholder="Enter your password"
+                                   required>
+                            <button type="button" class="password-toggle" onclick="togglePassword()">
+                                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="form-footer">
+                        <label class="remember-me">
+                            <input type="checkbox" id="remember" name="remember">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="forgot-password.html" class="text-link">Forgot password?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        <span id="btnText">SIGN IN</span>
+                        <div id="btnSpinner" class="spinner hidden"></div>
+                    </button>
+
+                    <!-- Register Link -->
+                    <div class="text-center mt-3">
+                        <span style="color: #9CA3AF;">Don't have an account?</span>
+                        <a href="register.html" class="text-link">Register here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.innerHTML = '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.innerHTML = '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>';
+            }
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'error') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        ${type === 'success'
+                            ? '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>'
+                            : '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>'}
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+
+            // Validate inputs
+            if (!username || !password) {
+                showAlert('Please enter username and password', 'error');
+                return;
+            }
+
+            // Show loading state
+            loginBtn.disabled = true;
+            loginBtn.classList.add('loading');
+            btnText.classList.add('hidden');
+            btnSpinner.classList.remove('hidden');
+
+            try {
+                const response = await fetch('../api/auth/login.php', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Login successful! Redirecting...', 'success');
+
+                    // Store user data in localStorage
+                    localStorage.setItem('user', JSON.stringify(data.data));
+
+                    // Redirect based on user role
+                    const basePath = window.location.pathname.includes('/e-receipt/') ? '/e-receipt' : '';
+                    setTimeout(() => {
+                        if (data.data.is_admin) {
+                            window.location.href = basePath + '/web/admin/dashboard.html';
+                        } else {
+                            window.location.href = basePath + '/web/dashboard.html';
+                        }
+                    }, 1000);
+                } else {
+                    showAlert(data.message, 'error');
+
+                    // Reset loading state
+                    loginBtn.disabled = false;
+                    loginBtn.classList.remove('loading');
+                    btnText.classList.remove('hidden');
+                    btnSpinner.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('An error occurred. Please try again.', 'error');
+
+                // Reset loading state
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('loading');
+                btnText.classList.remove('hidden');
+                btnSpinner.classList.add('hidden');
+            }
+        });
+
+        // Check if already logged in
+        window.addEventListener('load', function() {
+            const user = localStorage.getItem('user');
+            if (user) {
+                const userData = JSON.parse(user);
+                const basePath = window.location.pathname.includes('/e-receipt/') ? '/e-receipt' : '';
+                if (userData.is_admin) {
+                    window.location.href = basePath + '/web/admin/dashboard.html';
+                } else {
+                    window.location.href = basePath + '/web/dashboard.html';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

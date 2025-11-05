@@ -1,0 +1,6 @@
+# Safe .htaccess for Production
+# If this causes 500 errors, delete this file entirely
+
+AddDefaultCharset UTF-8
+DirectoryIndex index.html
+Options -Indexes

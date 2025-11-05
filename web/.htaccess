@@ -1,0 +1,24 @@
+# E-Receipt Web Frontend Configuration
+
+# Allow access to all files
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>
+
+# Enable directory index
+DirectoryIndex index.html
+
+# Set default charset
+AddDefaultCharset UTF-8
+
+# Enable CORS for API calls
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>

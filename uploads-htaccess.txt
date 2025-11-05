@@ -1,0 +1,40 @@
+# E-Receipt System - Uploads Directory Configuration
+# Copy this file to: api/uploads/.htaccess
+# Ensure proper content-type headers for PDF files
+
+<IfModule mod_mime.c>
+    # Set correct MIME types
+    AddType application/pdf .pdf
+    AddType image/jpeg .jpg .jpeg
+    AddType image/png .png
+    AddType image/gif .gif
+</IfModule>
+
+# Security: Prevent execution of PHP files in uploads directory
+<FilesMatch "\.php$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Allow access to image and PDF files only
+<FilesMatch "\.(jpg|jpeg|png|gif|pdf)$">
+    Order Allow,Deny
+    Allow from all
+
+    # Enable CORS for file access
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type"
+</FilesMatch>
+
+# Disable directory listing
+Options -Indexes
+
+# Cache control for static files
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType application/pdf "access plus 1 week"
+</IfModule>

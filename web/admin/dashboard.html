@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - E-Receipt System</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">E-RECEIPT ADMIN</div>
+        <div class="navbar-menu">
+            <a href="dashboard.html" class="navbar-link active">Dashboard</a>
+            <a href="pending-users.html" class="navbar-link">Pending Users</a>
+            <a href="all-receipts.html" class="navbar-link">All Receipts</a>
+            <a href="banks.html" class="navbar-link">Banks</a>
+            <a href="users.html" class="navbar-link">Users</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Admin Dashboard</h1>
+            <p class="dashboard-subtitle">System overview and statistics</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Loading -->
+        <div id="loadingStats" class="text-center" style="padding: 3rem;">
+            <div class="spinner" style="margin: 0 auto;"></div>
+            <p style="margin-top: 1rem; color: #9CA3AF;">Loading statistics...</p>
+        </div>
+
+        <!-- Statistics Grid -->
+        <div id="statsContainer" class="hidden">
+            <h3 style="margin-bottom: 1rem;">User Statistics</h3>
+            <div class="stats-grid" style="margin-bottom: 3rem;">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--warning-yellow);">
+                    <div class="stat-icon" style="background-color: rgba(245, 158, 11, 0.1);">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="pendingUsers" style="color: var(--warning-yellow);">0</div>
+                    <div class="stat-label">Pending Approval</div>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--success-green);">
+                    <div class="stat-icon" style="background-color: rgba(16, 185, 129, 0.1);">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="fill: var(--success-green);">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="approvedUsers" style="color: var(--success-green);">0</div>
+                    <div class="stat-label">Approved Users</div>
+                </div>
+
+                <div class="stat-card" style="border-color: var(--danger-red);">
+                    <div class="stat-icon" style="background-color: rgba(239, 68, 68, 0.1);">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="fill: var(--danger-red);">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="rejectedUsers" style="color: var(--danger-red);">0</div>
+                    <div class="stat-label">Rejected Users</div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem;">Receipt Statistics</h3>
+            <div class="stats-grid" style="margin-bottom: 3rem;">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v18.5c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5V2l-1.5 1.5z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="totalReceipts">0</div>
+                    <div class="stat-label">Total Receipts</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="activeUsers">0</div>
+                    <div class="stat-label">Active Uploaders</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="banksUsed">0</div>
+                    <div class="stat-label">Banks in Use</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="totalAmount">$0.00</div>
+                    <div class="stat-label">Total Amount</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <h3 style="margin-bottom: 1.5rem;">Quick Actions</h3>
+                    <div class="d-flex gap-2" style="flex-wrap: wrap;">
+                        <a href="pending-users.html" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                            </svg>
+                            Approve Pending Users
+                        </a>
+                        <a href="all-receipts.html" class="btn btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v18.5c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5V2l-1.5 1.5z"/>
+                            </svg>
+                            View All Receipts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer" style="margin-top: auto;">
+        <p>&copy; 2025 E-Receipt System. All rights reserved.</p>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        let currentUser = null;
+
+        // Initialize dashboard
+        async function initDashboard() {
+            currentUser = checkAdmin();
+            if (!currentUser) return;
+
+            updateNavbar(currentUser);
+            await loadStatistics();
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const data = await apiRequest('/admin/statistics.php');
+
+                document.getElementById('loadingStats').classList.add('hidden');
+
+                if (data.success) {
+                    const userStats = data.data.users;
+                    const receiptStats = data.data.receipts;
+
+                    // User statistics
+                    document.getElementById('totalUsers').textContent = userStats.total_users || 0;
+                    document.getElementById('pendingUsers').textContent = userStats.pending_users || 0;
+                    document.getElementById('approvedUsers').textContent = userStats.approved_users || 0;
+                    document.getElementById('rejectedUsers').textContent = userStats.rejected_users || 0;
+
+                    // Receipt statistics
+                    document.getElementById('totalReceipts').textContent = receiptStats.total_receipts || 0;
+                    document.getElementById('activeUsers').textContent = receiptStats.total_users_uploaded || 0;
+                    document.getElementById('banksUsed').textContent = receiptStats.banks_used || 0;
+                    document.getElementById('totalAmount').textContent = formatCurrency(receiptStats.total_amount);
+
+                    document.getElementById('statsContainer').classList.remove('hidden');
+                } else {
+                    showAlert('Failed to load statistics', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to load statistics:', error);
+                document.getElementById('loadingStats').classList.add('hidden');
+                showAlert('An error occurred while loading statistics', 'error');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', initDashboard);
+    </script>
+</body>
+</html>

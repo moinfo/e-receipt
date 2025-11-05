@@ -1,0 +1,291 @@
+# E-Receipt System - Git Ignore File
+# Generated: 2025-11-06
+
+# ===========================================
+# Sensitive Configuration Files
+# ===========================================
+# Never commit database credentials or API keys
+api/config/database.php
+api/config/production.php
+.env
+.env.local
+.env.production
+
+# ===========================================
+# User Uploaded Files
+# ===========================================
+# Receipt images and PDFs uploaded by users
+api/uploads/
+api/uploads/receipts/*
+!api/uploads/.htaccess
+!api/uploads/receipts/.gitkeep
+
+# Temporary upload directory
+api/uploads/temp/
+
+# ===========================================
+# Log Files
+# ===========================================
+# PHP and Apache error logs
+*.log
+error_log
+debug.log
+api/logs/
+logs/
+
+# ===========================================
+# IDE and Editor Files
+# ===========================================
+# Visual Studio Code
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains IDEs (PhpStorm, WebStorm, IntelliJ)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ===========================================
+# Operating System Files
+# ===========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===========================================
+# PHP
+# ===========================================
+# Composer dependencies
+vendor/
+composer.phar
+composer.lock
+
+# PHP Cache
+*.cache
+.phpunit.result.cache
+
+# ===========================================
+# Node.js & NPM (if used for build tools)
+# ===========================================
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+
+# Build output
+dist/
+build/
+
+# ===========================================
+# Database
+# ===========================================
+# Database dumps and backups
+*.sql.gz
+*.sql.zip
+database/backups/
+backups/
+*.db
+*.sqlite
+*.sqlite3
+
+# ===========================================
+# Temporary Files
+# ===========================================
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Session files
+sessions/
+
+# Cache directories
+cache/
+.cache/
+
+# ===========================================
+# Testing
+# ===========================================
+# PHPUnit
+.phpunit.cache/
+phpunit.xml
+
+# Test coverage
+coverage/
+.coverage
+
+# ===========================================
+# Documentation (optional)
+# ===========================================
+# Uncomment if you don't want to commit docs
+# docs/_build/
+# *.pdf
+
+# ===========================================
+# Mobile App (Flutter)
+# ===========================================
+# Flutter/Dart
+mobile_app/.dart_tool/
+mobile_app/.flutter-plugins
+mobile_app/.flutter-plugins-dependencies
+mobile_app/.packages
+mobile_app/.pub-cache/
+mobile_app/.pub/
+mobile_app/build/
+mobile_app/flutter_*.log
+
+# Android
+mobile_app/android/.gradle/
+mobile_app/android/gradle/
+mobile_app/android/gradlew
+mobile_app/android/gradlew.bat
+mobile_app/android/local.properties
+mobile_app/android/captures/
+mobile_app/android/.externalNativeBuild/
+mobile_app/android/app/debug/
+mobile_app/android/app/profile/
+mobile_app/android/app/release/
+mobile_app/android/app/*.apk
+mobile_app/android/app/*.aab
+
+# iOS
+mobile_app/ios/Flutter/flutter_export_environment.sh
+mobile_app/ios/Flutter/App.framework
+mobile_app/ios/Flutter/Flutter.framework
+mobile_app/ios/Flutter/Flutter.podspec
+mobile_app/ios/.symlinks/
+mobile_app/ios/Pods/
+mobile_app/ios/Podfile.lock
+mobile_app/ios/.generated/
+mobile_app/ios/Flutter/Generated.xcconfig
+mobile_app/ios/Runner.xcworkspace/
+
+# ===========================================
+# Archives and Compressed Files
+# ===========================================
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# Except deployment packages (if needed)
+!releases/*.zip
+
+# ===========================================
+# Backup Files
+# ===========================================
+*.bak
+*.backup
+*.old
+*_backup
+*_old
+
+# ===========================================
+# Security & Keys
+# ===========================================
+# Private keys and certificates
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa
+id_rsa.pub
+.ssh/
+
+# API keys
+api_keys.txt
+secrets.txt
+credentials.json
+
+# ===========================================
+# Custom Application Files
+# ===========================================
+# Debug and test files
+test-*.php
+debug-*.php
+_test/
+_debug/
+
+# Uploaded receipts from testing
+api/uploads/receipts/receipt_*
+
+# User data exports
+exports/
+downloads/
+
+# ===========================================
+# Version Control
+# ===========================================
+# SVN
+.svn/
+
+# Mercurial
+.hg/
+.hgignore
+
+# Git
+.git/
+.gitattributes
+
+# ===========================================
+# Optional: Development Tools
+# ===========================================
+# Vagrant
+.vagrant/
+Vagrantfile.local
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# ===========================================
+# Keep These Files
+# ===========================================
+# Explicitly track important empty directories
+!api/uploads/.gitkeep
+!api/uploads/receipts/.gitkeep
+!database/.gitkeep
+
+# Keep example/template files
+!api/config/database.example.php
+!.env.example

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Receipts - E-Receipt System</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">E-RECEIPT ADMIN</div>
+        <div class="navbar-menu">
+            <a href="dashboard.html" class="navbar-link">Dashboard</a>
+            <a href="pending-users.html" class="navbar-link">Pending Users</a>
+            <a href="all-receipts.html" class="navbar-link active">All Receipts</a>
+            <a href="banks.html" class="navbar-link">Banks</a>
+            <a href="users.html" class="navbar-link">Users</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">All Receipts</h1>
+            <p class="dashboard-subtitle">View all receipts submitted by users</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Filters -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-body">
+                <h3 style="margin-bottom: 1rem;">Filters</h3>
+                <div class="d-flex gap-2" style="flex-wrap: wrap; margin-bottom: 1rem;">
+                    <button onclick="filterByStatus('all')" id="btnAll" class="btn btn-primary">All</button>
+                    <button onclick="filterByStatus('pending')" id="btnPending" class="btn btn-secondary">Pending</button>
+                    <button onclick="filterByStatus('approved')" id="btnApproved" class="btn btn-secondary">Approved</button>
+                    <button onclick="filterByStatus('rejected')" id="btnRejected" class="btn btn-secondary">Rejected</button>
+                </div>
+                <div class="d-flex gap-2" style="flex-wrap: wrap;">
+                    <input type="text" id="searchInput" class="form-control" style="flex: 1; min-width: 200px; padding-left: 1rem;" placeholder="Search by user, receipt #...">
+                    <button onclick="applyFilters()" class="btn btn-primary">Search</button>
+                    <button onclick="clearFilters()" class="btn btn-secondary">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receipts Table -->
+        <div class="table-container">
+            <div id="loadingReceipts" class="text-center" style="padding: 2rem;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+                <p style="margin-top: 1rem; color: #9CA3AF;">Loading receipts...</p>
+            </div>
+
+            <table id="receiptsTable" class="hidden">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Bank</th>
+                        <th>Receipt #</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="receiptsBody">
+                </tbody>
+            </table>
+
+            <div id="noReceipts" class="hidden text-center" style="padding: 3rem; color: #9CA3AF;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.3; margin-bottom: 1rem;">
+                    <path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v18.5c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5V2l-1.5 1.5z"/>
+                </svg>
+                <h3>No Receipts Found</h3>
+                <p>Try adjusting your filters or wait for users to upload receipts</p>
+                <a href="dashboard.html" class="btn btn-primary mt-2">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer" style="margin-top: auto;">
+        <p>&copy; 2025 E-Receipt System. All rights reserved.</p>
+    </div>
+
+    <!-- Receipt View Modal -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Receipt Details</h3>
+                <button class="modal-close" onclick="closeModal('receiptModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="receiptDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        let currentUser = null;
+        let allReceipts = [];
+        let filteredReceipts = [];
+        let currentStatusFilter = 'all';
+
+        // Initialize page
+        async function initReceipts() {
+            currentUser = checkAdmin();
+            if (!currentUser) return;
+
+            updateNavbar(currentUser);
+            await loadReceipts();
+        }
+
+        // Load all receipts
+        async function loadReceipts(status = 'all') {
+            try {
+                document.getElementById('loadingReceipts').classList.remove('hidden');
+                document.getElementById('receiptsTable').classList.add('hidden');
+
+                const data = await apiRequest(`/admin/receipts.php?status=${status}`);
+
+                document.getElementById('loadingReceipts').classList.add('hidden');
+
+                if (data.success && data.data.length > 0) {
+                    allReceipts = data.data;
+                    filteredReceipts = [...allReceipts];
+                    displayReceipts();
+                } else {
+                    document.getElementById('noReceipts').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load receipts:', error);
+                document.getElementById('loadingReceipts').classList.add('hidden');
+                showAlert('Failed to load receipts', 'error');
+            }
+        }
+
+        // Filter by status
+        async function filterByStatus(status) {
+            currentStatusFilter = status;
+
+            // Update button styles
+            ['All', 'Pending', 'Approved', 'Rejected'].forEach(s => {
+                const btn = document.getElementById('btn' + s);
+                if (btn) {
+                    btn.className = s.toLowerCase() === status ? 'btn btn-primary' : 'btn btn-secondary';
+                }
+            });
+
+            await loadReceipts(status);
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredReceipts = allReceipts.filter(receipt => {
+                const matchesSearch = !searchTerm ||
+                    (receipt.username && receipt.username.toLowerCase().includes(searchTerm)) ||
+                    (receipt.full_name && receipt.full_name.toLowerCase().includes(searchTerm)) ||
+                    (receipt.receipt_number && receipt.receipt_number.toLowerCase().includes(searchTerm)) ||
+                    (receipt.bank_name && receipt.bank_name.toLowerCase().includes(searchTerm)) ||
+                    (receipt.description && receipt.description.toLowerCase().includes(searchTerm));
+
+                return matchesSearch;
+            });
+
+            displayReceipts();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            filteredReceipts = [...allReceipts];
+            displayReceipts();
+        }
+
+        // Display receipts
+        function displayReceipts() {
+            const tbody = document.getElementById('receiptsBody');
+            const table = document.getElementById('receiptsTable');
+            const noReceipts = document.getElementById('noReceipts');
+
+            tbody.innerHTML = '';
+
+            if (filteredReceipts.length === 0) {
+                table.classList.add('hidden');
+                noReceipts.classList.remove('hidden');
+                return;
+            }
+
+            table.classList.remove('hidden');
+            noReceipts.classList.add('hidden');
+
+            filteredReceipts.forEach(receipt => {
+                const row = document.createElement('tr');
+
+                // Status badge
+                let statusBadge = '';
+                if (receipt.status === 'pending') {
+                    statusBadge = '<span class="badge badge-pending">Pending</span>';
+                } else if (receipt.status === 'approved') {
+                    statusBadge = '<span class="badge badge-approved">Approved</span>';
+                } else if (receipt.status === 'rejected') {
+                    statusBadge = '<span class="badge badge-rejected">Rejected</span>';
+                }
+
+                // Action buttons based on status
+                let actionButtons = `<button onclick='viewReceipt(${receipt.id})' class="btn btn-secondary btn-sm">View</button>`;
+
+                if (receipt.status === 'pending') {
+                    actionButtons += ` <button onclick='approveReceipt(${receipt.id})' class="btn btn-success btn-sm">Approve</button>`;
+                    actionButtons += ` <button onclick='rejectReceipt(${receipt.id})' class="btn btn-danger btn-sm">Reject</button>`;
+                }
+
+                row.innerHTML = `
+                    <td>${formatDate(receipt.upload_date)}</td>
+                    <td>
+                        <div>${receipt.full_name}</div>
+                        <small style="color: #9CA3AF;">@${receipt.username}</small>
+                    </td>
+                    <td>${receipt.bank_name || '-'}</td>
+                    <td>${receipt.receipt_number || '-'}</td>
+                    <td>${formatCurrency(receipt.amount)}</td>
+                    <td>${statusBadge}</td>
+                    <td style="white-space: nowrap;">
+                        ${actionButtons}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // View receipt
+        function viewReceipt(receiptId) {
+            const receipt = filteredReceipts.find(r => r.id == receiptId);
+            if (!receipt) {
+                showAlert('Receipt not found', 'error');
+                return;
+            }
+            const details = document.getElementById('receiptDetails');
+            const receiptUrl = BASE_PATH + '/api/' + receipt.receipt_image_path;
+            const isPDF = receipt.receipt_image_path.toLowerCase().endsWith('.pdf');
+
+            let mediaHTML = '';
+            if (isPDF) {
+                // For PDFs, show embedded viewer
+                mediaHTML = `<embed src="${receiptUrl}" type="application/pdf" style="width: 100%; height: 500px; border-radius: 8px; margin-bottom: 1rem;">`;
+            } else {
+                // For images, show image
+                mediaHTML = `<img src="${receiptUrl}" alt="Receipt" style="width: 100%; border-radius: 8px; margin-bottom: 1rem;">`;
+            }
+
+            details.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    ${mediaHTML}
+                </div>
+                <div style="background-color: var(--dark-bg); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Uploaded By</label>
+                        <strong>${receipt.full_name} (@${receipt.username})</strong>
+                        <div style="color: #9CA3AF; font-size: 0.85rem;">${receipt.phone}</div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Bank</label>
+                        <strong>${receipt.bank_name || '-'}</strong>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Receipt Number</label>
+                        <strong>${receipt.receipt_number || '-'}</strong>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Amount</label>
+                        <strong style="color: var(--primary-orange); font-size: 1.25rem;">${formatCurrency(receipt.amount)}</strong>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Description</label>
+                        <p style="margin: 0;">${receipt.description || '-'}</p>
+                    </div>
+                    <div>
+                        <label style="color: #9CA3AF; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">Upload Date</label>
+                        <strong>${formatDate(receipt.upload_date)}</strong>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="${receiptUrl}" target="_blank" class="btn btn-secondary" style="flex: 1;">
+                        Open in New Tab
+                    </a>
+                    <a href="${receiptUrl}" download class="btn btn-primary" style="flex: 1;">
+                        Download
+                    </a>
+                </div>
+            `;
+            openModal('receiptModal');
+        }
+
+        // Approve receipt
+        async function approveReceipt(receiptId) {
+            if (!confirm('Are you sure you want to approve this receipt?')) {
+                return;
+            }
+
+            try {
+                const data = await apiRequest('/admin/approve-receipt.php', 'POST', {
+                    receipt_id: receiptId,
+                    action: 'approve'
+                });
+
+                if (data.success) {
+                    showAlert('Receipt approved successfully', 'success');
+                    await loadReceipts(currentStatusFilter);
+                } else {
+                    showAlert(data.message || 'Failed to approve receipt', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to approve receipt:', error);
+                showAlert('An error occurred while approving receipt', 'error');
+            }
+        }
+
+        // Reject receipt
+        async function rejectReceipt(receiptId) {
+            const reason = prompt('Please provide a reason for rejection (optional):');
+
+            if (reason === null) {
+                // User cancelled
+                return;
+            }
+
+            try {
+                const data = await apiRequest('/admin/approve-receipt.php', 'POST', {
+                    receipt_id: receiptId,
+                    action: 'reject',
+                    reason: reason || 'No reason provided'
+                });
+
+                if (data.success) {
+                    showAlert('Receipt rejected successfully', 'success');
+                    await loadReceipts(currentStatusFilter);
+                } else {
+                    showAlert(data.message || 'Failed to reject receipt', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to reject receipt:', error);
+                showAlert('An error occurred while rejecting receipt', 'error');
+            }
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('receiptModal');
+            if (event.target === modal) {
+                closeModal('receiptModal');
+            }
+        }
+
+        // Search on input
+        document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
+
+        // Initialize on page load
+        window.addEventListener('load', initReceipts);
+    </script>
+</body>
+</html>
