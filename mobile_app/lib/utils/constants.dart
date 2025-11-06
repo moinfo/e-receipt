@@ -2,11 +2,21 @@ import 'package:flutter/material.dart';
 
 // API Configuration
 class ApiConstants {
-  // Change this to your local IP address or server URL
+  // Environment URLs
+  static const String prodUrl = 'https://e-receipt.lerumaenterprises.co.tz/api';
+  static const String localUrl = 'http://192.168.0.100/e-receipt/api';
+
+  // Active environment - Change this to switch between environments
+  // true = Production, false = Local
+  static const bool useProduction = true;
+
+  // Base URL based on environment
+  static String get baseUrl => useProduction ? prodUrl : localUrl;
+
+  // Environment-specific configurations
   // For Android Emulator: http://10.0.2.2/e-receipt/api
   // For iOS Simulator: http://localhost/e-receipt/api
-  // For Physical Device: http://YOUR_LOCAL_IP/e-receipt/api
-  static const String baseUrl = 'http://192.168.0.100/e-receipt/api';
+  // For Physical Device: Use your local IP or production URL
 
   // Auth endpoints
   static const String login = '/auth/login.php';
@@ -70,7 +80,7 @@ class AppTheme {
       ),
     ),
 
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.cardBg,
       elevation: 0,
       shape: RoundedRectangleBorder(
