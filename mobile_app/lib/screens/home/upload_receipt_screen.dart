@@ -6,9 +6,12 @@ import '../../models/bank.dart';
 import '../../services/bank_service.dart';
 import '../../services/receipt_service.dart';
 import '../../utils/constants.dart';
+import '../../widgets/glass_card.dart';
 
 class UploadReceiptScreen extends StatefulWidget {
-  const UploadReceiptScreen({super.key});
+  final bool showBottomNav;
+
+  const UploadReceiptScreen({super.key, this.showBottomNav = true});
 
   @override
   State<UploadReceiptScreen> createState() => _UploadReceiptScreenState();
@@ -232,14 +235,19 @@ class _UploadReceiptScreenState extends State<UploadReceiptScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      extendBodyBehindAppBar: true,
+      appBar: widget.showBottomNav ? null : AppBar(
         title: const Text('Upload Receipt'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: _isLoadingBanks
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
+      body: GlassBackground(
+        child: SafeArea(
+          child: _isLoadingBanks
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -410,6 +418,8 @@ class _UploadReceiptScreenState extends State<UploadReceiptScreen> {
                 ),
               ),
             ),
+        ),
+      ),
     );
   }
 }

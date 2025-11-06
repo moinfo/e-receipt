@@ -3,7 +3,7 @@ import 'services/storage_service.dart';
 import 'services/auth_service.dart';
 import 'utils/constants.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/home/dashboard_screen.dart';
+import 'screens/home/main_navigation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) =>
-              isLoggedIn ? const DashboardScreen() : const LoginScreen(),
+              isLoggedIn ? const MainNavigation() : const LoginScreen(),
         ),
       );
     }

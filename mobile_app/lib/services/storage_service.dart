@@ -15,11 +15,45 @@ class StorageService {
 
   // Save user data after login
   Future<void> saveUserData(Map<String, dynamic> userData) async {
-    await _prefs?.setInt(StorageKeys.userId, int.parse(userData['id'].toString()));
+    // Parse user ID safely
+    int? userId;
+    if (userData['id'] != null) {
+      try {
+        userId = int.parse(userData['id'].toString());
+      } catch (e) {
+        // If parsing fails, try to handle it as already an int
+        if (userData['id'] is int) {
+          userId = userData['id'];
+        }
+      }
+    }
+
+    if (userId != null) {
+      await _prefs?.setInt(StorageKeys.userId, userId);
+    }
+
     await _prefs?.setString(StorageKeys.username, userData['username'] ?? '');
     await _prefs?.setString(StorageKeys.fullName, userData['full_name'] ?? '');
     await _prefs?.setString(StorageKeys.phone, userData['phone'] ?? '');
-    await _prefs?.setBool(StorageKeys.isAdmin, userData['is_admin'].toString() == '1');
+
+    // Handle is_admin - could be bool, int, or string
+    print('STORAGE DEBUG: Raw is_admin from API: ${userData['is_admin']}');
+    print('STORAGE DEBUG: is_admin type: ${userData['is_admin'].runtimeType}');
+
+    bool isAdmin = false;
+    if (userData['is_admin'] != null) {
+      if (userData['is_admin'] is bool) {
+        isAdmin = userData['is_admin'];
+      } else if (userData['is_admin'] is int) {
+        isAdmin = userData['is_admin'] == 1;
+      } else {
+        isAdmin = userData['is_admin'].toString() == '1' ||
+                  userData['is_admin'].toString().toLowerCase() == 'true';
+      }
+    }
+
+    print('STORAGE DEBUG: Saving isAdmin as: $isAdmin');
+    await _prefs?.setBool(StorageKeys.isAdmin, isAdmin);
     await _prefs?.setBool(StorageKeys.isLoggedIn, true);
   }
 

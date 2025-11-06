@@ -4,10 +4,13 @@ import '../../models/receipt.dart';
 import '../../services/receipt_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/receipt_card.dart';
+import '../../widgets/glass_card.dart';
 import 'receipt_detail_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({super.key});
+  final bool showBottomNav;
+
+  const HistoryScreen({super.key, this.showBottomNav = true});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -101,8 +104,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      extendBodyBehindAppBar: true,
+      appBar: widget.showBottomNav ? null : AppBar(
         title: const Text('Receipt History'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -110,110 +116,114 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Date Range Filter
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: AppColors.cardBg,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Date Range',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
+      body: GlassBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Date Range Filter
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: GlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Date Range',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: _selectDateFrom,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkBg,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.borderColor),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.calendar_today,
+                                      size: 16,
+                                      color: AppColors.lightGray,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _formatDate(_dateFrom),
+                                        style: const TextStyle(
+                                          color: AppColors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              'to',
+                              style: TextStyle(color: AppColors.lightGray),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: _selectDateTo,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkBg,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.borderColor),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.calendar_today,
+                                      size: 16,
+                                      color: AppColors.lightGray,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _formatDate(_dateTo),
+                                        style: const TextStyle(
+                                          color: AppColors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _selectDateFrom,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.darkBg,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                size: 16,
-                                color: AppColors.lightGray,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _formatDate(_dateFrom),
-                                  style: const TextStyle(
-                                    color: AppColors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        'to',
-                        style: TextStyle(color: AppColors.lightGray),
-                      ),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _selectDateTo,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.darkBg,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                size: 16,
-                                color: AppColors.lightGray,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _formatDate(_dateTo),
-                                  style: const TextStyle(
-                                    color: AppColors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+              ),
 
-          // Receipt List
-          Expanded(
-            child: _isLoading
+              // Receipt List
+              Expanded(
+                child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _receipts.isEmpty
                     ? Center(
@@ -268,9 +278,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           },
                         ),
                       ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
-    );
+        ),
+      );
   }
 }
