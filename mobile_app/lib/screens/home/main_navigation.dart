@@ -5,6 +5,10 @@ import '../../widgets/glass_card.dart';
 import '../../services/auth_service.dart';
 import '../../services/storage_service.dart';
 import '../auth/login_screen.dart';
+import '../admin/pending_users_screen.dart';
+import '../admin/all_receipts_screen.dart';
+import '../admin/banks_screen.dart';
+import '../admin/all_users_screen.dart';
 import 'dashboard_screen.dart';
 import 'upload_receipt_screen.dart';
 import 'history_screen.dart';
@@ -286,11 +290,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             title: 'Pending Users',
                             onTap: () {
                               Navigator.pop(context);
-                              // TODO: Navigate to pending users screen
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Pending Users screen coming soon!'),
-                                  behavior: SnackBarBehavior.floating,
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PendingUsersScreen(),
                                 ),
                               );
                             },
@@ -300,11 +302,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             title: 'All Receipts',
                             onTap: () {
                               Navigator.pop(context);
-                              // TODO: Navigate to all receipts screen
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('All Receipts screen coming soon!'),
-                                  behavior: SnackBarBehavior.floating,
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const AllReceiptsScreen(),
                                 ),
                               );
                             },
@@ -314,11 +314,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             title: 'Banks',
                             onTap: () {
                               Navigator.pop(context);
-                              // TODO: Navigate to banks screen
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Banks screen coming soon!'),
-                                  behavior: SnackBarBehavior.floating,
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const BanksScreen(),
                                 ),
                               );
                             },
@@ -328,11 +326,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             title: 'Users',
                             onTap: () {
                               Navigator.pop(context);
-                              // TODO: Navigate to users screen
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Users screen coming soon!'),
-                                  behavior: SnackBarBehavior.floating,
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const AllUsersScreen(),
                                 ),
                               );
                             },
