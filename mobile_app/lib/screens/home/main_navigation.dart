@@ -38,12 +38,26 @@ class _MainNavigationState extends State<MainNavigation> {
     });
   }
 
-  // Define the screens for each tab
-  final List<Widget> _screens = [
-    const DashboardScreen(showBottomNav: false),
-    const UploadReceiptScreen(showBottomNav: false),
-    const HistoryScreen(showBottomNav: false),
-  ];
+  // Build screens list dynamically based on user role
+  List<Widget> _buildScreens() {
+    final baseScreens = [
+      const DashboardScreen(showBottomNav: false),
+      const UploadReceiptScreen(showBottomNav: false),
+      const HistoryScreen(showBottomNav: false),
+    ];
+
+    if (_userData['is_admin'] == true) {
+      return [
+        ...baseScreens,
+        const PendingUsersScreen(showBottomNav: true),
+        const AllReceiptsScreen(showBottomNav: true),
+        const BanksScreen(showBottomNav: true),
+        const AllUsersScreen(showBottomNav: true),
+      ];
+    }
+
+    return baseScreens;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +66,7 @@ class _MainNavigationState extends State<MainNavigation> {
       drawer: _buildGlassDrawer(),
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: _buildScreens(),
       ),
       bottomNavigationBar: _buildGlassBottomNavBar(),
     );
@@ -290,11 +304,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             title: 'Pending Users',
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const PendingUsersScreen(showBottomNav: false),
-                                ),
-                              );
+                              setState(() {
+                                _currentIndex = 3;
+                              });
                             },
                           ),
                           _buildDrawerItem(
@@ -302,11 +314,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             title: 'All Receipts',
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const AllReceiptsScreen(showBottomNav: false),
-                                ),
-                              );
+                              setState(() {
+                                _currentIndex = 4;
+                              });
                             },
                           ),
                           _buildDrawerItem(
@@ -314,11 +324,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             title: 'Banks',
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const BanksScreen(showBottomNav: false),
-                                ),
-                              );
+                              setState(() {
+                                _currentIndex = 5;
+                              });
                             },
                           ),
                           _buildDrawerItem(
@@ -326,11 +334,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             title: 'Users',
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const AllUsersScreen(showBottomNav: false),
-                                ),
-                              );
+                              setState(() {
+                                _currentIndex = 6;
+                              });
                             },
                           ),
                         ],

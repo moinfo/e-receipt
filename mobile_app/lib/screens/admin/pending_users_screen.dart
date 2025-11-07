@@ -108,14 +108,6 @@ class _PendingUsersScreenState extends State<PendingUsersScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: widget.showBottomNav
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
         title: const Text('Pending Users'),
         backgroundColor: Colors.transparent,
         elevation: 0,

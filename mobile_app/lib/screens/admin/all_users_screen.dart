@@ -136,14 +136,6 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: widget.showBottomNav
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
         title: const Text('All Users'),
         backgroundColor: Colors.transparent,
         elevation: 0,

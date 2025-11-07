@@ -180,14 +180,6 @@ class _AllReceiptsScreenState extends State<AllReceiptsScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: widget.showBottomNav
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
         title: const Text('All Receipts'),
         backgroundColor: Colors.transparent,
         elevation: 0,

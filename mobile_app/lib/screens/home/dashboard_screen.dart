@@ -240,25 +240,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             StatCard(
               label: 'Total Users',
-              value: _statistics?['user_stats']?['total_users']?.toString() ?? '0',
+              value: _statistics?['users']?['total_users']?.toString() ?? '0',
               icon: Icons.people,
               color: AppColors.primaryOrange,
             ),
             StatCard(
               label: 'Pending Approval',
-              value: _statistics?['user_stats']?['pending_users']?.toString() ?? '0',
+              value: _statistics?['users']?['pending_users']?.toString() ?? '0',
               icon: Icons.pending,
               color: AppColors.primaryOrange,
             ),
             StatCard(
               label: 'Approved Users',
-              value: _statistics?['user_stats']?['approved_users']?.toString() ?? '0',
+              value: _statistics?['users']?['approved_users']?.toString() ?? '0',
               icon: Icons.check_circle,
               color: AppColors.primaryOrange,
             ),
             StatCard(
               label: 'Rejected Users',
-              value: _statistics?['user_stats']?['rejected_users']?.toString() ?? '0',
+              value: _statistics?['users']?['rejected_users']?.toString() ?? '0',
               icon: Icons.cancel,
               color: AppColors.primaryOrange,
             ),
@@ -289,19 +289,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             StatCard(
               label: 'Total Receipts',
-              value: _statistics?['receipt_stats']?['total_receipts']?.toString() ?? '0',
+              value: _statistics?['receipts']?['total_receipts']?.toString() ?? '0',
               icon: Icons.receipt_long,
               color: AppColors.primaryOrange,
             ),
             StatCard(
               label: 'Active Uploaders',
-              value: _statistics?['receipt_stats']?['active_uploaders']?.toString() ?? '0',
+              value: _statistics?['receipts']?['total_users_uploaded']?.toString() ?? '0',
               icon: Icons.people_outline,
               color: AppColors.primaryOrange,
             ),
             StatCard(
               label: 'Banks in Use',
-              value: _statistics?['receipt_stats']?['banks_in_use']?.toString() ?? '0',
+              value: _statistics?['receipts']?['banks_used']?.toString() ?? '0',
               icon: Icons.account_balance,
               color: AppColors.primaryOrange,
             ),
@@ -341,7 +341,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      _formatCurrency(_statistics?['receipt_stats']?['total_amount'] ?? 0),
+                      _formatCurrency(_statistics?['receipts']?['total_amount'] ?? 0),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

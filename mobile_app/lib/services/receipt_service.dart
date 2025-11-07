@@ -75,7 +75,7 @@ class ReceiptService {
   // Get user statistics
   Future<Map<String, dynamic>> getUserStatistics() async {
     try {
-      final response = await _api.get(ApiConstants.userStatistics);
+      final response = await _api.get(ApiConstants.adminStatistics);
       return response;
     } catch (e) {
       return {
