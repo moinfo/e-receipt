@@ -47,12 +47,24 @@ if (!isset($_FILES['receipt_image']) || $_FILES['receipt_image']['error'] !== UP
 // Validate file
 $file = $_FILES['receipt_image'];
 $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+$allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
 $max_size = 10 * 1024 * 1024; // 10MB
 
-// Check file type
-if (!in_array($file['type'], $allowed_types)) {
+// Get file extension
+$file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+// Check file type - validate both MIME type AND extension
+$valid_mime = in_array($file['type'], $allowed_types);
+$valid_extension = in_array($file_extension, $allowed_extensions);
+
+if (!$valid_mime && !$valid_extension) {
+    error_log("Upload rejected - MIME: {$file['type']}, Extension: {$file_extension}, Filename: {$file['name']}");
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Only JPG, PNG, GIF images and PDF files are allowed']);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Only JPG, PNG, GIF images and PDF files are allowed',
+        'debug' => "Received MIME type: {$file['type']}, Extension: {$file_extension}"
+    ]);
     exit;
 }
 

@@ -36,9 +36,16 @@ $receipt->user_id = getCurrentUserId();
 // Check if requesting today's data only (for dashboard)
 $todayOnly = isset($_GET['today']) && $_GET['today'] === 'true';
 
+// Check for date filters
+$dateFrom = isset($_GET['date_from']) ? $_GET['date_from'] : null;
+$dateTo = isset($_GET['date_to']) ? $_GET['date_to'] : null;
+
 // Get user receipts
 if ($todayOnly) {
     $receipts = $receipt->getTodayByUser();
+} elseif ($dateFrom && $dateTo) {
+    // Use date range if provided
+    $receipts = $receipt->getByUserDateRange($dateFrom, $dateTo);
 } else {
     $receipts = $receipt->getByUser();
 }

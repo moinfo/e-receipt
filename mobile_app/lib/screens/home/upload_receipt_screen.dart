@@ -303,7 +303,7 @@ class _UploadReceiptScreenState extends State<UploadReceiptScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Success'),
         content: const Text(
           'Receipt uploaded successfully! It will be reviewed by an admin.',
@@ -311,8 +311,19 @@ class _UploadReceiptScreenState extends State<UploadReceiptScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Return to dashboard
+              Navigator.of(dialogContext).pop(); // Close dialog
+              // Reset form
+              setState(() {
+                _selectedFile = null;
+                _selectedBankId = null;
+                _amountController.clear();
+                _receiptNumberController.clear();
+                _descriptionController.clear();
+              });
+              // Return to previous screen if not using bottom nav
+              if (!widget.showBottomNav && Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
             },
             child: const Text('OK'),
           ),
