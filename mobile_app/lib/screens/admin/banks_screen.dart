@@ -6,7 +6,9 @@ import '../../utils/constants.dart';
 import '../../widgets/glass_card.dart';
 
 class BanksScreen extends StatefulWidget {
-  const BanksScreen({super.key});
+  final bool showBottomNav;
+
+  const BanksScreen({super.key, this.showBottomNav = true});
 
   @override
   State<BanksScreen> createState() => _BanksScreenState();
@@ -46,6 +48,14 @@ class _BanksScreenState extends State<BanksScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        leading: widget.showBottomNav
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
         title: const Text('Banks'),
         backgroundColor: Colors.transparent,
         elevation: 0,

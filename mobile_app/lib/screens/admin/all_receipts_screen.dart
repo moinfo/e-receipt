@@ -8,7 +8,9 @@ import '../../widgets/receipt_card.dart';
 import '../home/receipt_detail_screen.dart';
 
 class AllReceiptsScreen extends StatefulWidget {
-  const AllReceiptsScreen({super.key});
+  final bool showBottomNav;
+
+  const AllReceiptsScreen({super.key, this.showBottomNav = true});
 
   @override
   State<AllReceiptsScreen> createState() => _AllReceiptsScreenState();
@@ -178,6 +180,14 @@ class _AllReceiptsScreenState extends State<AllReceiptsScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        leading: widget.showBottomNav
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
         title: const Text('All Receipts'),
         backgroundColor: Colors.transparent,
         elevation: 0,

@@ -6,7 +6,9 @@ import '../../utils/constants.dart';
 import '../../widgets/glass_card.dart';
 
 class AllUsersScreen extends StatefulWidget {
-  const AllUsersScreen({super.key});
+  final bool showBottomNav;
+
+  const AllUsersScreen({super.key, this.showBottomNav = true});
 
   @override
   State<AllUsersScreen> createState() => _AllUsersScreenState();
@@ -134,6 +136,14 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        leading: widget.showBottomNav
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
         title: const Text('All Users'),
         backgroundColor: Colors.transparent,
         elevation: 0,

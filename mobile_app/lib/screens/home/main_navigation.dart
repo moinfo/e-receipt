@@ -292,7 +292,7 @@ class _MainNavigationState extends State<MainNavigation> {
                               Navigator.pop(context);
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const PendingUsersScreen(),
+                                  builder: (context) => const PendingUsersScreen(showBottomNav: false),
                                 ),
                               );
                             },
@@ -304,7 +304,7 @@ class _MainNavigationState extends State<MainNavigation> {
                               Navigator.pop(context);
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const AllReceiptsScreen(),
+                                  builder: (context) => const AllReceiptsScreen(showBottomNav: false),
                                 ),
                               );
                             },
@@ -316,7 +316,7 @@ class _MainNavigationState extends State<MainNavigation> {
                               Navigator.pop(context);
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const BanksScreen(),
+                                  builder: (context) => const BanksScreen(showBottomNav: false),
                                 ),
                               );
                             },
@@ -328,7 +328,7 @@ class _MainNavigationState extends State<MainNavigation> {
                               Navigator.pop(context);
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const AllUsersScreen(),
+                                  builder: (context) => const AllUsersScreen(showBottomNav: false),
                                 ),
                               );
                             },

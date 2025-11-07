@@ -6,7 +6,9 @@ import '../../utils/constants.dart';
 import '../../widgets/glass_card.dart';
 
 class PendingUsersScreen extends StatefulWidget {
-  const PendingUsersScreen({super.key});
+  final bool showBottomNav;
+
+  const PendingUsersScreen({super.key, this.showBottomNav = true});
 
   @override
   State<PendingUsersScreen> createState() => _PendingUsersScreenState();
@@ -106,6 +108,14 @@ class _PendingUsersScreenState extends State<PendingUsersScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        leading: widget.showBottomNav
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
         title: const Text('Pending Users'),
         backgroundColor: Colors.transparent,
         elevation: 0,
