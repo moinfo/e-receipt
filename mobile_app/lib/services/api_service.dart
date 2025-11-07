@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:cookie_jar/cookie_jar.dart';
 import '../utils/constants.dart';
 import 'storage_service.dart';
 
@@ -9,9 +10,29 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
+  final CookieJar _cookieJar = CookieJar();
+
   final Map<String, String> _headers = {
     'Content-Type': 'application/json',
   };
+
+  // Get cookies for a specific URI
+  Future<String> _getCookieHeader(Uri uri) async {
+    final cookies = await _cookieJar.loadForRequest(uri);
+    if (cookies.isEmpty) return '';
+    return cookies.map((cookie) => '${cookie.name}=${cookie.value}').join('; ');
+  }
+
+  // Save cookies from response
+  Future<void> _saveCookies(Uri uri, http.Response response) async {
+    final cookieHeader = response.headers['set-cookie'];
+    if (cookieHeader != null) {
+      final cookies = cookieHeader.split(',').map((str) {
+        return Cookie.fromSetCookieValue(str.trim());
+      }).toList();
+      await _cookieJar.saveFromResponse(uri, cookies);
+    }
+  }
 
   // Make GET request
   Future<Map<String, dynamic>> get(String endpoint, {Map<String, String>? queryParams}) async {
@@ -25,11 +46,20 @@ class ApiService {
         url += '?$queryString';
       }
 
+      final uri = Uri.parse(url);
+      final cookieHeader = await _getCookieHeader(uri);
+
+      final headers = Map<String, String>.from(_headers);
+      if (cookieHeader.isNotEmpty) {
+        headers['Cookie'] = cookieHeader;
+      }
+
       final response = await http.get(
-        Uri.parse(url),
-        headers: _headers,
+        uri,
+        headers: headers,
       );
 
+      await _saveCookies(uri, response);
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);
@@ -39,12 +69,21 @@ class ApiService {
   // Make POST request
   Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data) async {
     try {
+      final uri = Uri.parse(ApiConstants.baseUrl + endpoint);
+      final cookieHeader = await _getCookieHeader(uri);
+
+      final headers = Map<String, String>.from(_headers);
+      if (cookieHeader.isNotEmpty) {
+        headers['Cookie'] = cookieHeader;
+      }
+
       final response = await http.post(
-        Uri.parse(ApiConstants.baseUrl + endpoint),
-        headers: _headers,
+        uri,
+        headers: headers,
         body: jsonEncode(data),
       );
 
+      await _saveCookies(uri, response);
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);
@@ -54,12 +93,21 @@ class ApiService {
   // Make PUT request
   Future<Map<String, dynamic>> put(String endpoint, Map<String, dynamic> data) async {
     try {
+      final uri = Uri.parse(ApiConstants.baseUrl + endpoint);
+      final cookieHeader = await _getCookieHeader(uri);
+
+      final headers = Map<String, String>.from(_headers);
+      if (cookieHeader.isNotEmpty) {
+        headers['Cookie'] = cookieHeader;
+      }
+
       final response = await http.put(
-        Uri.parse(ApiConstants.baseUrl + endpoint),
-        headers: _headers,
+        uri,
+        headers: headers,
         body: jsonEncode(data),
       );
 
+      await _saveCookies(uri, response);
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);
@@ -69,12 +117,21 @@ class ApiService {
   // Make DELETE request
   Future<Map<String, dynamic>> delete(String endpoint, Map<String, dynamic> data) async {
     try {
+      final uri = Uri.parse(ApiConstants.baseUrl + endpoint);
+      final cookieHeader = await _getCookieHeader(uri);
+
+      final headers = Map<String, String>.from(_headers);
+      if (cookieHeader.isNotEmpty) {
+        headers['Cookie'] = cookieHeader;
+      }
+
       final response = await http.delete(
-        Uri.parse(ApiConstants.baseUrl + endpoint),
-        headers: _headers,
+        uri,
+        headers: headers,
         body: jsonEncode(data),
       );
 
+      await _saveCookies(uri, response);
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);
