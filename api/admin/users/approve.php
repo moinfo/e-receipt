@@ -5,13 +5,20 @@
  * POST /api/admin/users/approve.php
  */
 
-header('Access-Control-Allow-Origin: *');
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : 'http://localhost';
+header("Access-Control-Allow-Origin: $origin");
+header('Access-Control-Allow-Credentials: true');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
-session_start();
+// Handle preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
+require_once '../../config/session.php';
 require_once '../../config/database.php';
 require_once '../../models/User.php';
 

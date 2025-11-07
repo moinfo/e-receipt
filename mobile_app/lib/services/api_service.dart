@@ -16,6 +16,12 @@ class ApiService {
     'Content-Type': 'application/json',
   };
 
+  // Clear all cookies
+  Future<void> clearCookies() async {
+    await _cookieJar.deleteAll();
+    print('All cookies cleared');
+  }
+
   // Get cookies for a specific URI
   Future<String> _getCookieHeader(Uri uri) async {
     final cookies = await _cookieJar.loadForRequest(uri);
@@ -27,10 +33,14 @@ class ApiService {
   Future<void> _saveCookies(Uri uri, http.Response response) async {
     final cookieHeader = response.headers['set-cookie'];
     if (cookieHeader != null) {
+      print('Saving cookies from ${uri.path}: $cookieHeader');
       final cookies = cookieHeader.split(',').map((str) {
         return Cookie.fromSetCookieValue(str.trim());
       }).toList();
       await _cookieJar.saveFromResponse(uri, cookies);
+      print('Cookies saved: ${cookies.map((c) => '${c.name}=${c.value}').join('; ')}');
+    } else {
+      print('No set-cookie header in response from ${uri.path}');
     }
   }
 
@@ -71,6 +81,10 @@ class ApiService {
     try {
       final uri = Uri.parse(ApiConstants.baseUrl + endpoint);
       final cookieHeader = await _getCookieHeader(uri);
+
+      // Debug: Print cookie information
+      print('POST Request to: $endpoint');
+      print('Cookie Header: ${cookieHeader.isNotEmpty ? cookieHeader : "NO COOKIES"}');
 
       final headers = Map<String, String>.from(_headers);
       if (cookieHeader.isNotEmpty) {
@@ -172,6 +186,10 @@ class ApiService {
   // Handle HTTP response
   Map<String, dynamic> _handleResponse(http.Response response) {
     try {
+      // Debug: Print response details
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}');
+
       final data = jsonDecode(response.body);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -183,9 +201,14 @@ class ApiService {
         };
       }
     } catch (e) {
+      // Debug: Print parse error and raw response
+      print('Failed to parse response: ${e.toString()}');
+      print('Raw response body: ${response.body}');
+
       return {
         'success': false,
         'message': 'Failed to parse response: ${e.toString()}',
+        'raw_response': response.body.substring(0, response.body.length > 200 ? 200 : response.body.length),
       };
     }
   }

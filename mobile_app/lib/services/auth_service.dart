@@ -61,12 +61,14 @@ class AuthService {
     try {
       final response = await _api.post(ApiConstants.logout, {});
 
-      // Clear local storage regardless of API response
+      // Clear cookies and local storage regardless of API response
+      await _api.clearCookies();
       await _storage.clearUserData();
 
       return response;
     } catch (e) {
-      // Still clear local storage even if API call fails
+      // Still clear cookies and local storage even if API call fails
+      await _api.clearCookies();
       await _storage.clearUserData();
 
       return {

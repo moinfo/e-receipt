@@ -9,7 +9,8 @@ class AdminService {
   // Get pending users
   Future<Map<String, dynamic>> getPendingUsers() async {
     try {
-      final response = await _api.get('${ApiConstants.adminUsers}?status=pending');
+      // Use existing pending users endpoint (like bank endpoints)
+      final response = await _api.get('/admin/users/pending.php');
 
       if (response['success'] == true && response['data'] != null) {
         List<User> users = (response['data'] as List)
@@ -64,9 +65,13 @@ class AdminService {
   // Approve or reject user
   Future<Map<String, dynamic>> updateUserStatus(int userId, String status) async {
     try {
-      final response = await _api.post('${ApiConstants.adminUsers}/update-status.php', {
+      // Use existing approve/reject endpoints (like bank endpoints)
+      final String endpoint = status == 'approved'
+          ? '/admin/users/approve.php'
+          : '/admin/users/reject.php';
+
+      final response = await _api.post(endpoint, {
         'user_id': userId,
-        'status': status,
       });
 
       return response;
