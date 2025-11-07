@@ -137,6 +137,30 @@ class Receipt {
     }
 
     /**
+     * Get receipts by user within date range
+     * @param string $dateFrom
+     * @param string $dateTo
+     * @return array
+     */
+    public function getByUserDateRange($dateFrom, $dateTo) {
+        $query = "SELECT r.*, b.bank_name, b.bank_code
+                  FROM " . $this->table . " r
+                  LEFT JOIN banks b ON r.bank_id = b.id
+                  WHERE r.user_id = :user_id
+                  AND r.status IN ('pending', 'approved', 'rejected')
+                  AND DATE(r.upload_date) BETWEEN :date_from AND :date_to
+                  ORDER BY r.upload_date DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $this->user_id);
+        $stmt->bindParam(':date_from', $dateFrom);
+        $stmt->bindParam(':date_to', $dateTo);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Get all receipts (admin function)
      * @param int $limit
      * @param int $offset
@@ -266,8 +290,7 @@ class Receipt {
                   MAX(upload_date) as last_upload
                   FROM " . $this->table . "
                   WHERE user_id = :user_id
-                  AND status IN ('pending', 'approved', 'rejected')
-                  AND DATE(upload_date) = CURDATE()";
+                  AND status IN ('pending', 'approved', 'rejected')";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':user_id', $this->user_id);

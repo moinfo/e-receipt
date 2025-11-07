@@ -43,6 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     print('DEBUG: is_admin value: ${_userData['is_admin']}');
     print('DEBUG: is_admin type: ${_userData['is_admin'].runtimeType}');
 
+    // Load statistics
     final response = await _receiptService.getUserStatistics();
 
     if (mounted) {
@@ -86,7 +87,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _formatCurrency(dynamic amount) {
     final value = double.tryParse(amount.toString()) ?? 0.0;
-    return '\$${value.toStringAsFixed(2)}';
+    final formatter = NumberFormat('#,##0.00', 'en_US');
+    return 'TZS ${formatter.format(value)}';
   }
 
   @override

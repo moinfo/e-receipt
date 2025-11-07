@@ -72,7 +72,7 @@ class ReceiptService {
     }
   }
 
-  // Get user statistics
+  // Get user statistics (works for both admin and regular users)
   Future<Map<String, dynamic>> getUserStatistics() async {
     try {
       final response = await _api.get(ApiConstants.adminStatistics);
@@ -87,6 +87,18 @@ class ReceiptService {
 
   // Get receipt image URL
   String getReceiptImageUrl(String imagePath) {
-    return ApiConstants.baseUrl.replaceAll('/api', '') + '/' + imagePath;
+    // Remove leading slash from imagePath if present to avoid double slashes
+    final cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+
+    // Get base URL - keep /api in the path since uploads are in /api/uploads/
+    final baseUrl = ApiConstants.baseUrl;
+
+    // Construct full URL
+    final fullUrl = '$baseUrl/$cleanPath';
+
+    // Debug print
+    print('Image URL constructed: $fullUrl');
+
+    return fullUrl;
   }
 }

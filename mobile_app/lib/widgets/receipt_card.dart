@@ -35,7 +35,8 @@ class ReceiptCard extends StatelessWidget {
   }
 
   String _formatCurrency(double amount) {
-    return '\$${amount.toStringAsFixed(2)}';
+    final formatter = NumberFormat('#,##0.00', 'en_US');
+    return 'TZS ${formatter.format(amount)}';
   }
 
   @override

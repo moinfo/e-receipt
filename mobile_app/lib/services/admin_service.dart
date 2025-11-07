@@ -124,12 +124,23 @@ class AdminService {
   }
 
   // Approve or reject receipt
-  Future<Map<String, dynamic>> updateReceiptStatus(int receiptId, String status) async {
+  Future<Map<String, dynamic>> updateReceiptStatus(int receiptId, String status, {String? reason}) async {
     try {
-      final response = await _api.post(ApiConstants.approveReceipt, {
+      // Convert status to action format expected by API
+      // "approved" -> "approve", "rejected" -> "reject"
+      final action = status == 'approved' ? 'approve' : 'reject';
+
+      final Map<String, dynamic> body = {
         'receipt_id': receiptId,
-        'status': status,
-      });
+        'action': action,
+      };
+
+      // Add reason if rejecting
+      if (action == 'reject' && reason != null && reason.isNotEmpty) {
+        body['reason'] = reason;
+      }
+
+      final response = await _api.post(ApiConstants.approveReceipt, body);
 
       return response;
     } catch (e) {

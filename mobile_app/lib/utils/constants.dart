@@ -41,6 +41,7 @@ class ApiConstants {
 // App Colors
 class AppColors {
   static const Color primaryOrange = Color(0xFFF59E0B);
+  static const Color primaryBlue = Color(0xFF3B82F6);
   static const Color darkBg = Color(0xFF1F1F1F);
   static const Color cardBg = Color(0xFF2A2A2A);
   static const Color white = Color(0xFFFFFFFF);

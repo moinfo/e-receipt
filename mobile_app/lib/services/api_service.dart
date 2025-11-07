@@ -9,7 +9,6 @@ class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
   ApiService._internal();
-
   final CookieJar _cookieJar = CookieJar();
 
   final Map<String, String> _headers = {
@@ -24,7 +23,9 @@ class ApiService {
 
   // Get cookies for a specific URI
   Future<String> _getCookieHeader(Uri uri) async {
-    final cookies = await _cookieJar.loadForRequest(uri);
+    // Load cookies from the base domain to ensure they're shared across all endpoints
+    final baseUri = Uri.parse(ApiConstants.baseUrl);
+    final cookies = await _cookieJar.loadForRequest(baseUri);
     if (cookies.isEmpty) return '';
     return cookies.map((cookie) => '${cookie.name}=${cookie.value}').join('; ');
   }
@@ -37,8 +38,11 @@ class ApiService {
       final cookies = cookieHeader.split(',').map((str) {
         return Cookie.fromSetCookieValue(str.trim());
       }).toList();
-      await _cookieJar.saveFromResponse(uri, cookies);
-      print('Cookies saved: ${cookies.map((c) => '${c.name}=${c.value}').join('; ')}');
+
+      // Save cookies for the base domain, not just the specific path
+      final baseUri = Uri.parse(ApiConstants.baseUrl);
+      await _cookieJar.saveFromResponse(baseUri, cookies);
+      print('Cookies saved to ${baseUri.toString()}: ${cookies.map((c) => '${c.name}=${c.value}').join('; ')}');
     } else {
       print('No set-cookie header in response from ${uri.path}');
     }
@@ -59,6 +63,10 @@ class ApiService {
       final uri = Uri.parse(url);
       final cookieHeader = await _getCookieHeader(uri);
 
+      // Debug: Print cookie information
+      print('GET Request to: $endpoint');
+      print('Cookie Header: ${cookieHeader.isNotEmpty ? cookieHeader : "NO COOKIES"}');
+
       final headers = Map<String, String>.from(_headers);
       if (cookieHeader.isNotEmpty) {
         headers['Cookie'] = cookieHeader;
@@ -70,6 +78,11 @@ class ApiService {
       );
 
       await _saveCookies(uri, response);
+
+      // Debug: Print response status
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);
@@ -160,10 +173,19 @@ class ApiService {
     Map<String, String> additionalFields,
   ) async {
     try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(ApiConstants.baseUrl + endpoint),
-      );
+      final uri = Uri.parse(ApiConstants.baseUrl + endpoint);
+      final cookieHeader = await _getCookieHeader(uri);
+
+      // Debug: Print cookie information
+      print('UPLOAD Request to: $endpoint');
+      print('Cookie Header: ${cookieHeader.isNotEmpty ? cookieHeader : "NO COOKIES"}');
+
+      var request = http.MultipartRequest('POST', uri);
+
+      // Add cookies to request headers
+      if (cookieHeader.isNotEmpty) {
+        request.headers['Cookie'] = cookieHeader;
+      }
 
       // Add file
       request.files.add(
@@ -177,6 +199,7 @@ class ApiService {
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
+      await _saveCookies(uri, response);
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);

@@ -46,8 +46,8 @@ try {
     }
     require_once '../models/Receipt.php';
 
-    // Check if user is logged in and is admin
-    requireAdmin();
+    // Check if user is logged in
+    requireLogin();
 
     // Get database connection
     $database = new Database();
@@ -57,27 +57,40 @@ try {
         throw new Exception('Database connection failed');
     }
 
-    // Create objects
-    $user = new User($db);
-    $receipt = new Receipt($db);
+    // Check if user is admin
+    $is_admin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
 
-    // Get statistics with error handling
-    $user_stats = $user->getStatistics();
-    if (!$user_stats) {
-        throw new Exception('Failed to retrieve user statistics');
+    if ($is_admin) {
+        // Admin: Get system-wide statistics
+        $user = new User($db);
+        $receipt = new Receipt($db);
+
+        $user_stats = $user->getStatistics();
+        if (!$user_stats) {
+            throw new Exception('Failed to retrieve user statistics');
+        }
+
+        $receipt_stats = $receipt->getStatistics();
+        if (!$receipt_stats) {
+            throw new Exception('Failed to retrieve receipt statistics');
+        }
+
+        // Combine statistics
+        $statistics = [
+            'users' => $user_stats,
+            'receipts' => $receipt_stats,
+            'generated_at' => date('Y-m-d H:i:s')
+        ];
+    } else {
+        // Regular user: Get personal statistics
+        $receipt = new Receipt($db);
+        $receipt->user_id = $_SESSION['user_id']; // Set the user_id for the query
+        $statistics = $receipt->getUserStatistics();
+
+        if (!$statistics) {
+            throw new Exception('Failed to retrieve user statistics');
+        }
     }
-
-    $receipt_stats = $receipt->getStatistics();
-    if (!$receipt_stats) {
-        throw new Exception('Failed to retrieve receipt statistics');
-    }
-
-    // Combine statistics
-    $statistics = [
-        'users' => $user_stats,
-        'receipts' => $receipt_stats,
-        'generated_at' => date('Y-m-d H:i:s')
-    ];
 
     http_response_code(200);
     echo json_encode([
