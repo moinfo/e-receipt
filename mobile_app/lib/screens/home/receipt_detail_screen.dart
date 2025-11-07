@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 import '../../models/receipt.dart';
 import '../../services/receipt_service.dart';
 import '../../services/auth_service.dart';
@@ -26,11 +27,74 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
   late Receipt _receipt;
   bool _isUpdating = false;
   bool _isDownloading = false;
+  String? _pdfFilePath;
+  bool _isLoadingPdf = false;
 
   @override
   void initState() {
     super.initState();
     _receipt = widget.receipt;
+    // Load PDF if the receipt is a PDF file
+    if (_receipt.receiptImagePath.toLowerCase().endsWith('.pdf')) {
+      _loadPdf();
+    }
+  }
+
+  Future<void> _loadPdf() async {
+    setState(() {
+      _isLoadingPdf = true;
+    });
+
+    try {
+      final receiptService = ReceiptService();
+      final pdfUrl = receiptService.getReceiptImageUrl(_receipt.receiptImagePath);
+      print('Loading PDF from: $pdfUrl');
+
+      final response = await http.get(Uri.parse(pdfUrl));
+      print('PDF download response status: ${response.statusCode}');
+      print('PDF download response size: ${response.bodyBytes.length} bytes');
+
+      if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+        final tempDir = await getTemporaryDirectory();
+        final file = File('${tempDir.path}/receipt_${_receipt.id}.pdf');
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Verify file was written
+        final fileExists = await file.exists();
+        final fileSize = await file.length();
+        print('PDF saved to: ${file.path}');
+        print('File exists: $fileExists, Size: $fileSize bytes');
+
+        if (mounted && fileExists && fileSize > 0) {
+          setState(() {
+            _pdfFilePath = file.path;
+            _isLoadingPdf = false;
+          });
+          print('PDF path set successfully: $_pdfFilePath');
+        } else {
+          print('PDF file verification failed');
+          if (mounted) {
+            setState(() {
+              _isLoadingPdf = false;
+            });
+          }
+        }
+      } else {
+        print('PDF download failed or empty response');
+        if (mounted) {
+          setState(() {
+            _isLoadingPdf = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading PDF: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingPdf = false;
+        });
+      }
+    }
   }
 
   Color _getStatusColor() {
@@ -347,28 +411,142 @@ Status: ${_receipt.status.toUpperCase()}
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Receipt Image
+                // Receipt Image or PDF
                 if (_receipt.receiptImagePath.toLowerCase().endsWith('.pdf'))
-                  Container(
-                    height: 300,
-                    color: AppColors.cardBg,
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.picture_as_pdf,
-                          size: 100,
-                          color: AppColors.primaryOrange,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'PDF Receipt',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: AppColors.lightGray,
+                  GestureDetector(
+                    onTap: () {
+                      // Show full screen PDF
+                      if (_pdfFilePath != null) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => Scaffold(
+                              backgroundColor: Colors.black,
+                              appBar: AppBar(
+                                backgroundColor: AppColors.darkBg,
+                                title: const Text('PDF Receipt'),
+                              ),
+                              body: PDFView(
+                                filePath: _pdfFilePath!,
+                                enableSwipe: true,
+                                swipeHorizontal: false,
+                                autoSpacing: true,
+                                pageFling: true,
+                                pageSnap: true,
+                                defaultPage: 0,
+                                fitPolicy: FitPolicy.WIDTH,
+                                preventLinkNavigation: false,
+                                onRender: (pages) {
+                                  print('PDF rendered with $pages pages');
+                                },
+                                onError: (error) {
+                                  print('PDF View Error: $error');
+                                },
+                                onPageError: (page, error) {
+                                  print('PDF Page $page Error: $error');
+                                },
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        );
+                      }
+                    },
+                    child: Container(
+                      height: 300,
+                      color: AppColors.cardBg,
+                      child: _isLoadingPdf
+                          ? const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(
+                                    color: AppColors.primaryOrange,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Loading PDF...',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.lightGray,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : _pdfFilePath != null
+                              ? Stack(
+                                  children: [
+                                    PDFView(
+                                      filePath: _pdfFilePath!,
+                                      enableSwipe: true,
+                                      swipeHorizontal: false,
+                                      autoSpacing: true,
+                                      pageFling: false,
+                                      pageSnap: false,
+                                      defaultPage: 0,
+                                      fitPolicy: FitPolicy.WIDTH,
+                                      preventLinkNavigation: false,
+                                      onRender: (pages) {
+                                        print('PDF preview rendered with $pages pages');
+                                      },
+                                      onError: (error) {
+                                        print('PDF Preview Error: $error');
+                                      },
+                                      onPageError: (page, error) {
+                                        print('PDF Page $page Error: $error');
+                                      },
+                                    ),
+                                    Positioned(
+                                      bottom: 8,
+                                      right: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.touch_app,
+                                              size: 16,
+                                              color: Colors.white,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'Tap to view',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.error,
+                                      size: 64,
+                                      color: AppColors.dangerRed,
+                                    ),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      'Failed to load PDF',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: AppColors.lightGray,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                     ),
                   )
                 else
