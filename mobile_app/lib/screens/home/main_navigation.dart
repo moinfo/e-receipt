@@ -12,6 +12,7 @@ import '../admin/all_users_screen.dart';
 import 'dashboard_screen.dart';
 import 'upload_receipt_screen.dart';
 import 'history_screen.dart';
+import 'settings_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -390,11 +391,10 @@ class _MainNavigationState extends State<MainNavigation> {
                           title: 'Settings',
                           onTap: () {
                             Navigator.pop(context);
-                            // TODO: Navigate to settings screen
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Settings screen coming soon!'),
-                                behavior: SnackBarBehavior.floating,
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsScreen(),
                               ),
                             );
                           },

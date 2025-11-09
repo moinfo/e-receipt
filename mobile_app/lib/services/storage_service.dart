@@ -88,6 +88,8 @@ class StorageService {
   }
 
   // Clear all user data (logout)
+  // Note: This does NOT clear biometric credentials stored in FlutterSecureStorage
+  // Biometric credentials persist across logout sessions for convenience
   Future<void> clearUserData() async {
     await _prefs?.remove(StorageKeys.userId);
     await _prefs?.remove(StorageKeys.username);
@@ -95,6 +97,8 @@ class StorageService {
     await _prefs?.remove(StorageKeys.phone);
     await _prefs?.remove(StorageKeys.isAdmin);
     await _prefs?.setBool(StorageKeys.isLoggedIn, false);
+
+    print('✅ User data cleared (biometric credentials preserved)');
   }
 
   // Get all user data as map

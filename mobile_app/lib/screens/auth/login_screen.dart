@@ -23,6 +23,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
+  bool _isBiometricAvailable = false;
+  bool _isBiometricEnabled = false;
+  String _biometricType = 'Biometric';
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -53,6 +56,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
 
     _animationController.forward();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    final isAvailable = await _authService.isBiometricAvailable();
+    final isEnabled = await _authService.isBiometricEnabled();
+    final biometricType = await _authService.getBiometricTypeName();
+
+    if (mounted) {
+      setState(() {
+        _isBiometricAvailable = isAvailable;
+        _isBiometricEnabled = isEnabled;
+        _biometricType = biometricType;
+      });
+    }
   }
 
   @override
@@ -98,6 +116,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         // Show success message
         _showSuccessSnackBar('Login successful!');
 
+        // Offer biometric enrollment if available and not already enabled
+        if (_isBiometricAvailable && !_isBiometricEnabled) {
+          await _offerBiometricEnrollment();
+        }
+
         // Small delay for user feedback
         await Future.delayed(const Duration(milliseconds: 500));
 
@@ -129,6 +152,141 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       });
 
       _showErrorSnackBar(_errorMessage!);
+    }
+  }
+
+  Future<void> _loginWithBiometric() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _authService.loginWithBiometric();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response['success'] == true) {
+        _showSuccessSnackBar('Login successful!');
+
+        // Small delay for user feedback
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (!mounted) return;
+
+        // Navigate to main navigation
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const MainNavigation(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+      } else {
+        setState(() {
+          _errorMessage = response['message'] ?? 'Biometric login failed';
+        });
+        _showErrorSnackBar(_errorMessage!);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Biometric login failed. Please try password login.';
+      });
+
+      _showErrorSnackBar(_errorMessage!);
+    }
+  }
+
+  Future<void> _offerBiometricEnrollment() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.darkBg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.primaryOrange.withOpacity(0.3)),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              _biometricType == 'Face ID' ? Icons.face : Icons.fingerprint,
+              color: AppColors.primaryOrange,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Enable Biometric Login?',
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Would you like to use $_biometricType for quick and secure login in the future?',
+          style: const TextStyle(
+            color: AppColors.lightGray,
+            fontSize: 15,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Not Now',
+              style: TextStyle(
+                color: AppColors.lightGray.withOpacity(0.8),
+                fontSize: 15,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryOrange,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Enable',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final enableResult = await _authService.enableBiometric(
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (enableResult['success'] == true) {
+        setState(() {
+          _isBiometricEnabled = true;
+        });
+        if (mounted) {
+          _showSuccessSnackBar('$_biometricType login enabled!');
+        }
+      }
     }
   }
 
@@ -408,6 +566,70 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ),
 
                       const SizedBox(height: 28),
+
+                      // Biometric Login Button (shown only if enabled)
+                      if (_isBiometricAvailable && _isBiometricEnabled)
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: 50,
+                              child: OutlinedButton.icon(
+                                onPressed: _isLoading ? null : _loginWithBiometric,
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: AppColors.primaryOrange.withOpacity(0.5),
+                                    width: 2,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  backgroundColor: AppColors.primaryOrange.withOpacity(0.1),
+                                ),
+                                icon: Icon(
+                                  _biometricType == 'Face ID' ? Icons.face : Icons.fingerprint,
+                                  color: AppColors.primaryOrange,
+                                  size: 24,
+                                ),
+                                label: Text(
+                                  'Login with $_biometricType',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryOrange,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Divider(
+                                    color: AppColors.lightGray.withOpacity(0.3),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'OR',
+                                    style: TextStyle(
+                                      color: AppColors.lightGray.withOpacity(0.6),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Divider(
+                                    color: AppColors.lightGray.withOpacity(0.3),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
 
                       // Login button
                       SizedBox(
